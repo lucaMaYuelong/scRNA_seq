@@ -5,8 +5,8 @@ import anndata as ad
 
 # 设定参数
 
-spatial_transcriptomics_gem = 'simulated_spatial_transcriptomics.gem'
-bin_size = 20 * 500
+# spatial_transcriptomics_gem = 'simulated_spatial_transcriptomics.gem'
+# bin_size = 20 * 500
 # 分箱操作
 def bin_operation(spatial_transcriptomics_gem, bin_size):
 
@@ -52,7 +52,10 @@ def bin_operation(spatial_transcriptomics_gem, bin_size):
                        var=pd.DataFrame(var_dict))
     adata.uns['bin_gene_counts'] = spot_counts_per_bin.set_index('bin_id').to_dict(orient='index')  # 添加到.uns作为未观测到的集合数据
 
-    # 保存为.h5ad文件
-    adata.write('binned_spatial_transcriptomics.h5ad')
+    return adata
 
-bin_operation(spatial_transcriptomics_gem, bin_size)
+
+def gengerate_bin_h5ad_file(adata, h5ad_file_path):
+    # 保存为.h5ad文件
+    adata.write(h5ad_file_path)
+
