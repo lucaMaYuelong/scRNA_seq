@@ -133,11 +133,12 @@ def combine_cell_gene_with_markers(num_cell, num_gene, num_cell_type, num_marker
     return adata
 
 
-# 结果生成txt文件
-def make_gene_txt(genes, filename='genes.txt'):
-    with open(filename, 'w') as file:
-        for gene in genes:
-            file.write(f"{gene[0]}\t{gene[1]}\n")
+# 结果生成h5ad文件
+def generate_h5ad_file(adata, h5ad_file_path):
+    # 保存为h5ad格式文件
+    adata.write_h5ad(h5ad_file_path)
+
+    return h5ad_file_path
 
 
 # genes = generate_gene(num_gene=1000)
@@ -147,4 +148,5 @@ def make_gene_txt(genes, filename='genes.txt'):
 # save_cells_to_txt(cells)
 
 adata = combine_cell_gene_with_markers(100, 1000, 5, 10)
+generate_h5ad_file(adata, 'marker_gene.h5ad')
 print(adata)
