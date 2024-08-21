@@ -14,7 +14,7 @@ import pandas as pd
 
 
 # 模拟生成基因
-def generate_gene_expression(num_gene, num_cell):
+def generate_gene_expression(num_gene, num_cell, gene_expression_amount):
     # 非零表达基因数量为总基因数量的10%-30%
     bio_p_min = 0.09
     bio_p_max = 0.29
@@ -35,8 +35,8 @@ def generate_gene_expression(num_gene, num_cell):
 
     # 对非零表达的基因，生成符合正态分布的表达量，并限制在1到250之间
     num_nonzero = len(flat_indices)
-    random_values = np.random.normal(loc=125, scale=50, size=num_nonzero)
-    random_values = np.clip(random_values, 1, 250)
+    random_values = np.random.normal(loc=gene_expression_amount / 2, scale=gene_expression_amount / 5, size=num_nonzero)
+    random_values = np.clip(random_values, 1, gene_expression_amount)
 
     # 使用扁平化索引来更新gene_expression中的值
     gene_expression.ravel()[flat_indices] = random_values
@@ -74,7 +74,7 @@ def save_cells_to_txt(cells, filename="cells.txt"):
             file.write(f"{cell_id} {cell_type}\n")
 
 
-def select_marker_genes(gene_expression, cells, num_marker_gene):
+def select_marker_genes(gene_expression, cells, num_marker_gene, gene_expression_amount):
     # cells 是一个包含 (cell_id, cell_type) 元组的列表
     cell_types = np.array([cell[1] for cell in cells])
     cell_indices_by_type = {}
@@ -111,19 +111,19 @@ def select_marker_genes(gene_expression, cells, num_marker_gene):
     for cell_type, genes in marker_genes.items():
         cell_indices = cell_indices_by_type[cell_type]
         for gene in genes:
-            gene_expression[gene, cell_indices] = np.random.randint(1000, 1501, size=cell_indices.shape)
+            gene_expression[gene, cell_indices] = np.random.randint(gene_expression_amount * 2, gene_expression_amount * 3 + 1, size=cell_indices.shape)
 
     return gene_expression
 
 
 # 修改combine_cell_gene函数以包含marker gene的选择
-def combine_cell_gene_with_markers(num_cell, num_gene, num_cell_type, num_marker_gene):
+def combine_cell_gene_with_markers(num_cell, num_gene, num_cell_type, num_marker_gene, gene_expression_amount):
     cells = generate_cell(num_cell, num_cell_type)
     cell_ids = [cell[0] for cell in cells]
     cell_types = [cell[1] for cell in cells]
 
-    gene_expression = generate_gene_expression(num_gene, num_cell)
-    gene_expression = select_marker_genes(gene_expression, cells, num_marker_gene)
+    gene_expression = generate_gene_expression(num_gene, num_cell, gene_expression_amount)
+    gene_expression = select_marker_genes(gene_expression, cells, num_marker_gene, gene_expression_amount)
 
     adata = ad.AnnData(X=gene_expression.T)
     adata.obs_names = cell_ids
@@ -141,12 +141,15 @@ def generate_h5ad_file(adata, h5ad_file_path):
     return h5ad_file_path
 
 
+gene_count_range = 250
+
+
 # genes = generate_gene(num_gene=1000)
 # make_gene_txt(genes)
 
 # cells = generate_cell(100, 5)
 # save_cells_to_txt(cells)
 
-adata = combine_cell_gene_with_markers(100, 1000, 5, 10)
+adata = combine_cell_gene_with_markers(100, 1000, 5, 10, 250)
 generate_h5ad_file(adata, 'marker_gene.h5ad')
 print(adata)
